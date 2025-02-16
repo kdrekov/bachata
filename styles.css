@@ -1,0 +1,86 @@
+/* Основни стилове */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #f4f4f4, #e8e8e8);
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Основно заглавие */
+h1 {
+    color: #d9534f;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+/* Секции */
+section {
+    background: white;
+    padding: 20px;
+    margin: 20px auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    text-align: left;
+}
+
+/* Заглавия на секции */
+h2 {
+    color: #0275d8;
+    font-size: 22px;
+    border-bottom: 2px solid #0275d8;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+/* Листове със съдържание */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* Линкове */
+ul li {
+    padding: 10px;
+    margin: 5px 0;
+    background: #f8f9fa;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+ul li a {
+    text-decoration: none;
+    font-size: 18px;
+    color: #0275d8;
+    font-weight: bold;
+    display: block;
+    padding: 10px;
+}
+
+ul li:hover {
+    background: #d9534f;
+}
+
+ul li:hover a {
+    color: white;
+}
+
+/* Бутон за връщане */
+a[href="index.html"], a[href="#"] {
+    display: inline-block;
+    background: #0275d8;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    margin-top: 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+a[href="index.html"]:hover, a[href="#"]:hover {
+    background: #d9534f;
+}
