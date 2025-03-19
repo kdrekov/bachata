@@ -1707,9 +1707,14 @@
     ]
 };
 
-
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Sidebar script loaded");
+    
+    // Проверка дали страницата вече има прилаган този скрипт
+    if (document.getElementById("sidebar-wrapper")) {
+        console.log("Sidebar already exists, skipping creation");
+        return;
+    }
     
     // Вземаме името на текущата страница
     const currentPage = window.location.pathname.split("/").pop();
@@ -1724,11 +1729,13 @@ document.addEventListener("DOMContentLoaded", function () {
         
         // Търсене на урок в модулите
         for (const moduleName in modulesData) {
+            if (!modulesData[moduleName]) continue;
             const moduleData = modulesData[moduleName];
             
             for (const section of moduleData) {
+                if (!section || !section.lessons) continue;
                 for (const lesson of section.lessons) {
-                    if (lesson.url === currentPage) {
+                    if (lesson && lesson.url === currentPage) {
                         return moduleName;
                     }
                 }
@@ -1743,22 +1750,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentModule = findModuleForCurrentPage(currentPage);
     console.log("Current module:", currentModule);
     
-    // Създаваме сайдбара
+    // Създаваме wrapper за сайдбара
+    let sidebarWrapper = document.createElement("div");
+    sidebarWrapper.id = "sidebar-wrapper";
+    sidebarWrapper.style.position = "fixed";
+    sidebarWrapper.style.top = "0";
+    sidebarWrapper.style.left = "0";
+    sidebarWrapper.style.width = "250px";
+    sidebarWrapper.style.height = "100vh";
+    sidebarWrapper.style.zIndex = "1000";
+    sidebarWrapper.style.background = "#f9f9f9";
+    sidebarWrapper.style.boxShadow = "2px 0 5px rgba(0, 0, 0, 0.1)";
+    sidebarWrapper.style.transition = "transform 0.3s ease";
+    
+    // Създаваме самия сайдбар
     let sidebar = document.createElement("div");
     sidebar.id = "sidebar";
-    
-    // Стилизиране на сайдбара
-    sidebar.style.position = "fixed";
-    sidebar.style.left = "10px";
-    sidebar.style.top = "10px";
-    sidebar.style.width = "250px";
-    sidebar.style.height = "calc(100vh - 20px)";
-    sidebar.style.background = "#f9f9f9";
-    sidebar.style.padding = "15px";
-    sidebar.style.borderRadius = "8px";
-    sidebar.style.boxShadow = "0px 4px 8px rgba(0, 0, 0, 0.1)";
+    sidebar.style.height = "100%";
     sidebar.style.overflowY = "auto";
-    sidebar.style.zIndex = "9999";
+    sidebar.style.padding = "15px";
     
     // Добавяме заглавие
     let title = document.createElement("h2");
@@ -1766,6 +1776,7 @@ document.addEventListener("DOMContentLoaded", function () {
     title.style.color = "#0275d8";
     title.style.borderBottom = "2px solid #0275d8";
     title.style.paddingBottom = "10px";
+    title.style.marginTop = "10px";
     sidebar.appendChild(title);
     
     if (currentModule) {
@@ -1789,36 +1800,49 @@ document.addEventListener("DOMContentLoaded", function () {
         sidebar.appendChild(moduleTitle);
         
         // Добавяме секциите от модула
-        modulesData[currentModule].forEach(section => {
-            let sectionDiv = document.createElement("div");
-            sectionDiv.className = "sidebar-section";
-            
-            let sectionTitle = document.createElement("h4");
-            sectionTitle.textContent = section.title;
-            sectionTitle.style.margin = "10px 0";
-            sectionTitle.style.color = "#333";
-            sectionDiv.appendChild(sectionTitle);
-            
-            let ul = document.createElement("ul");
-            ul.style.paddingLeft = "15px";
-            
-            section.lessons.forEach(lesson => {
-                let li = document.createElement("li");
-                li.style.margin = "5px 0";
+        if (modulesData[currentModule]) {
+            modulesData[currentModule].forEach(section => {
+                if (!section) return; // Пропускаме невалидни секции
                 
-                let a = document.createElement("a");
-                a.href = lesson.url;
-                a.textContent = lesson.name;
-                a.style.color = (lesson.url === currentPage) ? "#d9534f" : "#0275d8";
-                a.style.fontWeight = (lesson.url === currentPage) ? "bold" : "normal";
+                let sectionDiv = document.createElement("div");
+                sectionDiv.className = "sidebar-section";
                 
-                li.appendChild(a);
-                ul.appendChild(li);
+                let sectionTitle = document.createElement("h4");
+                sectionTitle.textContent = section.title;
+                sectionTitle.style.margin = "10px 0";
+                sectionTitle.style.color = "#333";
+                sectionDiv.appendChild(sectionTitle);
+                
+                if (section.lessons && section.lessons.length > 0) {
+                    let ul = document.createElement("ul");
+                    ul.style.paddingLeft = "15px";
+                    ul.style.listStyleType = "none";
+                    
+                    section.lessons.forEach(lesson => {
+                        if (!lesson) return; // Пропускаме невалидни уроци
+                        
+                        let li = document.createElement("li");
+                        li.style.margin = "5px 0";
+                        
+                        let a = document.createElement("a");
+                        a.href = lesson.url;
+                        a.textContent = lesson.name;
+                        a.style.color = (lesson.url === currentPage) ? "#d9534f" : "#0275d8";
+                        a.style.fontWeight = (lesson.url === currentPage) ? "bold" : "normal";
+                        a.style.textDecoration = "none";
+                        a.style.display = "block";
+                        a.style.padding = "5px 0";
+                        
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
+                    
+                    sectionDiv.appendChild(ul);
+                }
+                
+                sidebar.appendChild(sectionDiv);
             });
-            
-            sectionDiv.appendChild(ul);
-            sidebar.appendChild(sectionDiv);
-        });
+        }
     } else {
         // Ако не намерим модул, показваме списък с всички модули
         console.log("Module not found, showing all modules");
@@ -1829,6 +1853,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         let modulesList = document.createElement("ul");
         modulesList.style.paddingLeft = "15px";
+        modulesList.style.listStyleType = "none";
         
         for (const moduleName in modulesData) {
             let li = document.createElement("li");
@@ -1839,6 +1864,9 @@ document.addEventListener("DOMContentLoaded", function () {
             let displayName = moduleName.replace(".html", "").replace(/-/g, " ").replace(/bachata/g, "Bachata");
             a.textContent = displayName;
             a.style.color = "#0275d8";
+            a.style.textDecoration = "none";
+            a.style.display = "block";
+            a.style.padding = "5px 0";
             
             li.appendChild(a);
             modulesList.appendChild(li);
@@ -1847,45 +1875,104 @@ document.addEventListener("DOMContentLoaded", function () {
         sidebar.appendChild(modulesList);
     }
     
-    // Добавяме бутон за затваряне
-    let closeButton = document.createElement("button");
-    closeButton.textContent = "✕";
-    closeButton.style.position = "absolute";
-    closeButton.style.top = "10px";
-    closeButton.style.right = "10px";
-    closeButton.style.background = "none";
-    closeButton.style.border = "none";
-    closeButton.style.fontSize = "16px";
-    closeButton.style.cursor = "pointer";
-    closeButton.style.color = "#666";
-    closeButton.onclick = function() {
-        sidebar.style.display = "none";
-        showButton.style.display = "block";
-    };
-    sidebar.appendChild(closeButton);
+    // Добавяме сайдбара към wrapper-а
+    sidebarWrapper.appendChild(sidebar);
     
-    // Добавяме бутон за показване на сайдбара
-    let showButton = document.createElement("button");
-    showButton.textContent = "☰ Меню";
-    showButton.style.position = "fixed";
-    showButton.style.top = "10px";
-    showButton.style.left = "10px";
-    showButton.style.background = "#0275d8";
-    showButton.style.color = "white";
-    showButton.style.border = "none";
-    showButton.style.borderRadius = "5px";
-    showButton.style.padding = "10px";
-    showButton.style.cursor = "pointer";
-    showButton.style.zIndex = "9998";
-    showButton.style.display = "none"; // Първоначално скрит
-    showButton.onclick = function() {
-        sidebar.style.display = "block";
-        showButton.style.display = "none";
-    };
+    // Създаваме toggle бутон
+    let toggleButton = document.createElement("button");
+    toggleButton.id = "toggle-sidebar";
+    toggleButton.innerHTML = "☰";
+    toggleButton.style.position = "fixed";
+    toggleButton.style.top = "10px";
+    toggleButton.style.left = "10px";
+    toggleButton.style.zIndex = "1001";
+    toggleButton.style.background = "#0275d8";
+    toggleButton.style.color = "white";
+    toggleButton.style.border = "none";
+    toggleButton.style.borderRadius = "5px";
+    toggleButton.style.width = "40px";
+    toggleButton.style.height = "40px";
+    toggleButton.style.fontSize = "20px";
+    toggleButton.style.cursor = "pointer";
+    toggleButton.style.display = "flex";
+    toggleButton.style.alignItems = "center";
+    toggleButton.style.justifyContent = "center";
+    
+    // Създаваме контейнер за съдържанието
+    let contentWrapper = document.createElement("div");
+    contentWrapper.id = "content-wrapper";
+    contentWrapper.style.marginLeft = "250px"; // Същата ширина като сайдбара
+    contentWrapper.style.transition = "margin-left 0.3s ease";
+    contentWrapper.style.width = "calc(100% - 250px)";
+    
+    // Добавяме CSS за страницата
+    let styleElement = document.createElement("style");
+    styleElement.textContent = `
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar-wrapper {
+                transform: translateX(-100%);
+            }
+            #content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            #toggle-sidebar {
+                display: flex !important;
+            }
+            body.sidebar-open #sidebar-wrapper {
+                transform: translateX(0);
+            }
+            body.sidebar-open #content-wrapper {
+                margin-left: 0;
+            }
+        }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Вземаме цялото съдържание на страницата
+    while (document.body.firstChild) {
+        contentWrapper.appendChild(document.body.firstChild);
+    }
     
     // Добавяме елементите към документа
-    document.body.appendChild(sidebar);
-    document.body.appendChild(showButton);
+    document.body.appendChild(sidebarWrapper);
+    document.body.appendChild(toggleButton);
+    document.body.appendChild(contentWrapper);
     
-    console.log("Sidebar added to document");
+    // Функционалност на toggle бутона
+    toggleButton.addEventListener("click", function() {
+        if (window.innerWidth <= 768) {
+            // На малки екрани показваме/скриваме сайдбара
+            document.body.classList.toggle("sidebar-open");
+            toggleButton.innerHTML = document.body.classList.contains("sidebar-open") ? "✕" : "☰";
+        } else {
+            // На големи екрани показваме/скриваме сайдбара и преоразмеряваме съдържанието
+            if (sidebarWrapper.style.transform === "translateX(-100%)") {
+                sidebarWrapper.style.transform = "translateX(0)";
+                contentWrapper.style.marginLeft = "250px";
+                contentWrapper.style.width = "calc(100% - 250px)";
+                toggleButton.innerHTML = "✕";
+            } else {
+                sidebarWrapper.style.transform = "translateX(-100%)";
+                contentWrapper.style.marginLeft = "0";
+                contentWrapper.style.width = "100%";
+                toggleButton.innerHTML = "☰";
+            }
+        }
+    });
+    
+    // Начално състояние на сайдбара според размера на екрана
+    if (window.innerWidth <= 768) {
+        sidebarWrapper.style.transform = "translateX(-100%)";
+        contentWrapper.style.marginLeft = "0";
+        contentWrapper.style.width = "100%";
+    }
+    
+    console.log("Sidebar setup complete");
 });
